@@ -10,6 +10,7 @@ import house from '../assets/house.png'
 import wind from '../assets/wind.png'
 import thunderstorm from '../assets/thunderstorm.png'
 import mist  from '../assets/mist.png'
+import logo from '../assets/logo.png'
 import './Weather.css'
 
 function Weather() {
@@ -17,7 +18,8 @@ function Weather() {
     let api_key = "08b134dc51a593fa582598c015b0e37e";
     
     
-    const [weatherdata,setWeatherData] = useState(false);
+    const [weatherdata,setWeatherData] = useState();
+    const [error, setError] = useState(null);
     const inputRef = useRef();
 
     const allIcons = {
@@ -43,81 +45,128 @@ function Weather() {
 
    
     const search = async (city) =>{
+         
+
+        if (!city) {
+            setError("Blank value is not accepted, Please enter city name");
+            setWeatherData(null);
+            return;
+          }
+       
+           
+        
+    
 
         try{
+            
             const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${api_key}`;
 
+            
+
             const response = await fetch(url);
+            
             const data = await response.json();
 
             console.log(data)
 
             const icon = allIcons[data.weather[0].icon] || clear_sky;
 
+
+
+            if (data.cod !== 200) {
+                setError(data.message);
+                setWeatherData(null);
+
+            }
+            else{
+
+                setWeatherData({
+                    humidity : data.main.humidity,
+                    temp : Math.floor(data.main.temp),
+                    mintemp : Math.floor(data.main.temp_min),
+                    maxtemp : Math.floor(data.main.temp_max),
+                    winSpeed : data.wind.speed,
+                    location : data.name,
+                    description : data.weather[0].description,
+                    icon : icon,
+                    
+    
+                })
+                setError(null);
+
+            }
+            
+
+
+           
+
+
+            
         
            
-            setWeatherData({
-                humidity : data.main.humidity,
-                temp : Math.floor(data.main.temp),
-                mintemp : Math.floor(data.main.temp_min),
-                maxtemp : Math.floor(data.main.temp_max),
-                winSpeed : data.wind.speed,
-                location : data.name,
-                description : data.weather[0].description,
-                icon : icon
 
-            })
-    
-            
+          
         }
         catch (error){
             console.error(error);
-            setError("Error fetching weather data. Please try again later.");
+            setError("Error fetching data. 404 City Not Found.");
+            setWeatherData(null);
+            
             
           
         }
     }
 
-
     useEffect(() =>{
         search("london");
         
+        
     },[])
 
-    
    
 
     const handleSubmit = (e) => {
+
+        
         
         e.preventDefault();
         search(inputRef.current.value);
         inputRef.current.value = ""
+        
       };
     
   return (
     <div>
      
         <div className="container">
+
+                <div className="title">
+                <h2><span>Weather</span> Forecast</h2>
+                <img src={logo} alt="logo"/>   
+                </div>
         
              <form className="form" onSubmit={handleSubmit}>
 
              <div className="input">
-              
-             <input
-                  type="text"
-                  placeholder="Enter city name"
-                 ref={inputRef}
-                  required
-                />
+                    <SlMagnifier className="icon"/>
+                    <input
+                        type="text"
+                        placeholder="Enter City Name"
+                        ref={inputRef}
+                        
+                        />
+                        
+                    <button type='submit'>    Search</button>
 
-                </div>
+              </div>
               </form>
 
 
-             {
-
-             (weatherdata) ? (
-              <div className="weather-info">
+               
+              
+              {error && <p className="error-message">{error}</p>}
+              {weatherdata ?  (
+              <div className="weather-info">                  
                  <img className="icon" src={weatherdata.icon} alt="icon"/>
                 <h3 className='location'>{weatherdata.location}</h3>
                 <p className='description'>{weatherdata.description}</p>
@@ -148,12 +197,11 @@ function Weather() {
 
                     </div>
                  </div>
-                 
               </div>
+              ): <></>}
+          
 
-             ): (<p style={{textAlign:"center", color:"white"}}>Waiting to Load Weather Data...</p>)}
-
-        
+    
             
         </div>
 

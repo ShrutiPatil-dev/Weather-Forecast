@@ -152,8 +152,10 @@ height: 35px;
 
 @media screen and (max-width:500px){
 
-   
-   
+
+    .container{
+        height: 110vh;
+    }
 
     .weather-info .icon{
         width: 80px;

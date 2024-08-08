@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect,useRef,useState } from 'react'
 import clear_sky from "../assets/clear.png"
 import drizzle from "../assets/drizzle.png"
 import humidity from "../assets/humidity.png"
 import cloud from '../assets/cloud.png'
 import snow from '../assets/snow.png'
 import rain from '../assets/rain.png'
-import { SlMagnifier } from "react-icons/sl";
+import {  SlMagnifier } from "react-icons/sl";
 import house from '../assets/house.png'
 import wind from '../assets/wind.png'
 import thunderstorm from '../assets/thunderstorm.png'
@@ -16,8 +16,9 @@ function Weather() {
 
     let api_key = "08b134dc51a593fa582598c015b0e37e";
     
-    const inputRef = useRef();
+    
     const [weatherdata,setWeatherData] = useState(false);
+    const inputRef = useRef();
 
     const allIcons = {
         "01d": clear_sky,
@@ -40,9 +41,8 @@ function Weather() {
         "50n": mist,
         };
 
-
+   
     const search = async (city) =>{
-
 
         try{
             const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${api_key}`;
@@ -53,7 +53,9 @@ function Weather() {
             console.log(data)
 
             const icon = allIcons[data.weather[0].icon] || clear_sky;
-            
+
+        
+           
             setWeatherData({
                 humidity : data.main.humidity,
                 temp : Math.floor(data.main.temp),
@@ -65,41 +67,67 @@ function Weather() {
                 icon : icon
 
             })
-
+    
             
         }
         catch (error){
-            console.error("Something bad happened");
-            console.error(error.message);
+            console.error(error);
+            setError("Error fetching weather data. Please try again later.");
             
           
         }
     }
 
+
     useEffect(() =>{
-        search("london")
+        search("london");
+        
     },[])
 
-  
+    
+   
 
+    const handleSubmit = (e) => {
+        
+        e.preventDefault();
+        search(inputRef.current.value);
+        inputRef.current.value = ""
+      };
+    
   return (
     <div>
+     
         <div className="container">
-             <div className="input">
-                    <input type="text" ref={inputRef} placeholder='Search Location '/>
-                    <SlMagnifier className="search" size={22} color='white' onClick={()=> search(inputRef.current.value)}/>
-             </div>
+        
+             <form className="form" onSubmit={handleSubmit}>
 
+             <div className="input">
+              
+             <input
+                  type="text"
+                  placeholder="Enter city name"
+                 ref={inputRef}
+                  required
+                />
+
+                </div>
+              </form>
+
+
+             {
+
+             (weatherdata) ? (
               <div className="weather-info">
                  <img className="icon" src={weatherdata.icon} alt="icon"/>
                 <h3 className='location'>{weatherdata.location}</h3>
+                <p className='description'>{weatherdata.description}</p>
                 <p className="temperature">{weatherdata.temp}°C</p>
                 
                  <div className="temp">
                  <p >Max {weatherdata.maxtemp}°C</p>
                  <p >Min {weatherdata.mintemp}°C</p>
                  </div>
-                 <p className='description'>{weatherdata.description}</p>
+                 
 
                  <div className="column">
                     <div className="col">
@@ -123,10 +151,12 @@ function Weather() {
                  
               </div>
 
+             ): (<p style={{textAlign:"center", color:"white"}}>Waiting to Load Weather Data...</p>)}
+
         
             
         </div>
-      
+
     </div>
   )
 }
